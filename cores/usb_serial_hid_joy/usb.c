@@ -319,8 +319,8 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         0,                                      // bAlternateSetting
         1,                                      // bNumEndpoints
         0x03,                                   // bInterfaceClass (0x03 = HID)
-        0x01,                                   // bInterfaceSubClass (0x01 = Boot)
-        0x02,                                   // bInterfaceProtocol (0x02 = Mouse)
+        0x00,                                   // bInterfaceSubClass
+        0x00,                                   // bInterfaceProtocol
         0,                                      // iInterface
         // HID interface descriptor, HID 1.11 spec, section 6.2.1
         9,                                      // bLength
@@ -336,7 +336,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         5,                                      // bDescriptorType
         JOYSTICK2_ENDPOINT | 0x80,                  // bEndpointAddress
         0x03,                                   // bmAttributes (0x03=intr)
-        JOYSTICK2_SIZE, 0,                          // wMaxPacketSize
+        12, 0,                          // wMaxPacketSize
         JOYSTICK2_INTERVAL,                         // bInterval
 
         // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
@@ -413,7 +413,7 @@ static const struct descriptor_list_struct {
 	{0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
         {0x2200, KEYBOARD_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
         {0x2100, KEYBOARD_INTERFACE, config1_descriptor+KEYBOARD_HID_DESC_OFFSET, 9},
-        {0x2200, JOYSTICK2_INTERFACE, mouse_hid_report_desc, sizeof(mouse_hid_report_desc)},
+        {0x2200, JOYSTICK2_INTERFACE, joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
         {0x2100, JOYSTICK2_INTERFACE, config1_descriptor+JOYSTICK2_HID_DESC_OFFSET, 9},
         {0x2200, JOYSTICK_INTERFACE, joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
         {0x2100, JOYSTICK_INTERFACE, config1_descriptor+JOYSTICK_HID_DESC_OFFSET, 9},
@@ -479,11 +479,7 @@ uint8_t mouse_buttons USBSTATE;
 static uint8_t mouse_protocol USBSTATE;
 
 // joystick data
-uint8_t joystick_report_data[12] USBSTATE;
-
-// joystick 2 data
-uint8_t joystick2_report_data[12] USBSTATE;
-
+uint8_t dual_joystick_report_data[2][12] USBSTATE;
 
 /**************************************************************************
  *
@@ -522,30 +518,30 @@ void usb_init(void)
         keyboard_leds = 0;
         mouse_buttons = 0;
         mouse_protocol = 1;
-        joystick_report_data[0] = 0;
-        joystick_report_data[1] = 0;
-        joystick_report_data[2] = 0;
-        joystick_report_data[3] = 0;
-        joystick_report_data[4] =  0x0F;
-        joystick_report_data[5] =  0x20;
-        joystick_report_data[6] =  0x80;
-        joystick_report_data[7] =  0x00;
-        joystick_report_data[8] =  0x02;
-        joystick_report_data[9] =  0x08;
-        joystick_report_data[10] = 0x20;
-        joystick_report_data[11] = 0x80;
-        joystick2_report_data[0] = 0;
-        joystick2_report_data[1] = 0;
-        joystick2_report_data[2] = 0;
-        joystick2_report_data[3] = 0;
-        joystick2_report_data[4] =  0x0F;
-        joystick2_report_data[5] =  0x20;
-        joystick2_report_data[6] =  0x80;
-        joystick2_report_data[7] =  0x00;
-        joystick2_report_data[8] =  0x02;
-        joystick2_report_data[9] =  0x08;
-        joystick2_report_data[10] = 0x20;
-        joystick2_report_data[11] = 0x80;
+        dual_joystick_report_data[0][0] = 0;
+        dual_joystick_report_data[0][1] = 0;
+        dual_joystick_report_data[0][2] = 0;
+        dual_joystick_report_data[0][3] = 0;
+        dual_joystick_report_data[0][4] =  0x0F;
+        dual_joystick_report_data[0][5] =  0x20;
+        dual_joystick_report_data[0][6] =  0x80;
+        dual_joystick_report_data[0][7] =  0x00;
+        dual_joystick_report_data[0][8] =  0x02;
+        dual_joystick_report_data[0][9] =  0x08;
+        dual_joystick_report_data[0][10] = 0x20;
+        dual_joystick_report_data[0][11] = 0x80;
+        dual_joystick_report_data[1][0] = 0;
+        dual_joystick_report_data[1][1] = 0;
+        dual_joystick_report_data[1][2] = 0;
+        dual_joystick_report_data[1][3] = 0;
+        dual_joystick_report_data[1][4] =  0x0F;
+        dual_joystick_report_data[1][5] =  0x20;
+        dual_joystick_report_data[1][6] =  0x80;
+        dual_joystick_report_data[1][7] =  0x00;
+        dual_joystick_report_data[1][8] =  0x02;
+        dual_joystick_report_data[1][9] =  0x08;
+        dual_joystick_report_data[1][10] = 0x20;
+        dual_joystick_report_data[1][11] = 0x80;
 	UDINT = 0;
         UDIEN = (1<<EORSTE)|(1<<SOFE)|(1<<SUSPE);
 }
@@ -896,7 +892,7 @@ ISR(USB_COM_vect)
                                 if (bRequest == HID_GET_REPORT) {
                                         usb_wait_in_ready();
                                         for (i=0; i<12; i++) {
-                                                UEDATX = joystick2_report_data[i];
+                                                UEDATX = dual_joystick_report_data[1][i];
                                         }
                                         usb_send_in();
                                         return;
@@ -908,7 +904,7 @@ ISR(USB_COM_vect)
                                 if (bRequest == HID_GET_REPORT) {
                                         usb_wait_in_ready();
                                         for (i=0; i<12; i++) {
-                                                UEDATX = joystick_report_data[i];
+                                                UEDATX = dual_joystick_report_data[0][i];
                                         }
                                         usb_send_in();
                                         return;

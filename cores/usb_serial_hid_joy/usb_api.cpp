@@ -790,17 +790,23 @@ void usb_keyboard_class::releaseAll(void)
 
 
 
-void usb_mouse_class::move(int8_t x, int8_t y, int8_t wheel)
+
+void usb_dual_joystick_class::send_now(void)
 {
-        uint8_t intr_state, timeout;
+        uint8_t intr_state, timeout, endpoint;
 
         if (!usb_configuration) return;
-        if (x == -128) x = -127;
-        if (y == -128) y = -127;
-        if (wheel == -128) wheel = -127;
         intr_state = SREG;
         cli();
-        UENUM = MOUSE_ENDPOINT;
+        switch(joynum) {
+            case 0:
+                endpoint = JOYSTICK_ENDPOINT;
+                break;
+            case 1:
+                endpoint = JOYSTICK2_ENDPOINT;
+                break;
+        }
+        UENUM = endpoint;
         timeout = UDFNUML + 50;
         while (1) {
                 // are we ready to transmit?
@@ -813,133 +819,20 @@ void usb_mouse_class::move(int8_t x, int8_t y, int8_t wheel)
                 // get ready to try checking again
                 intr_state = SREG;
                 cli();
-                UENUM = MOUSE_ENDPOINT;
+                UENUM = endpoint;
         }
-        UEDATX = mouse_buttons;
-        UEDATX = x;
-        UEDATX = y;
-        UEDATX = wheel;
-        UEINTX = 0x3A;
-        SREG = intr_state;
-}
-
-void usb_mouse_class::click(uint8_t b)
-{
-        mouse_buttons = (b & 7);
-        move(0, 0);
-        mouse_buttons = 0;
-        move(0, 0);
-}
-
-void usb_mouse_class::scroll(int8_t wheel)
-{
-        move(0, 0, wheel);
-}
-
-void usb_mouse_class::set_buttons(uint8_t left, uint8_t middle, uint8_t right)
-{
-        uint8_t mask=0;
-
-        if (left) mask |= 1;
-        if (middle) mask |= 4;
-        if (right) mask |= 2;
-        mouse_buttons = mask;
-        move(0, 0);
-}
-
-void usb_mouse_class::press(uint8_t b)
-{
-        uint8_t prev = mouse_buttons;
-        mouse_buttons |= (b & 7);
-        if (mouse_buttons != prev) move(0, 0);
-}
-
-void usb_mouse_class::release(uint8_t b)
-{
-        uint8_t prev = mouse_buttons;
-        mouse_buttons &= ~(b & 7);
-        if (mouse_buttons != prev) move(0, 0);
-}
-
-bool usb_mouse_class::isPressed(uint8_t b)
-{
-        return ((mouse_buttons & (b & 7)) != 0);
-}
-
-
-
-void usb_joystick_class::send_now(void)
-{
-        uint8_t intr_state, timeout;
-
-        if (!usb_configuration) return;
-        intr_state = SREG;
-        cli();
-        UENUM = JOYSTICK_ENDPOINT;
-        timeout = UDFNUML + 50;
-        while (1) {
-                // are we ready to transmit?
-                if (UEINTX & (1<<RWAL)) break;
-                SREG = intr_state;
-                // has the USB gone offline?
-                if (!usb_configuration) return;
-                // have we waited too long?
-                if (UDFNUML == timeout) return;
-                // get ready to try checking again
-                intr_state = SREG;
-                cli();
-                UENUM = JOYSTICK_ENDPOINT;
-        }
-        UEDATX = joystick_report_data[0];
-        UEDATX = joystick_report_data[1];
-        UEDATX = joystick_report_data[2];
-        UEDATX = joystick_report_data[3];
-        UEDATX = joystick_report_data[4];
-        UEDATX = joystick_report_data[5];
-        UEDATX = joystick_report_data[6];
-        UEDATX = joystick_report_data[7];
-        UEDATX = joystick_report_data[8];
-        UEDATX = joystick_report_data[9];
-        UEDATX = joystick_report_data[10];
-        UEDATX = joystick_report_data[11];
-        UEINTX = 0x3A;
-        SREG = intr_state;
-}
-
-void usb_joystick2_class::send_now(void)
-{
-        uint8_t intr_state, timeout;
-
-        if (!usb_configuration) return;
-        intr_state = SREG;
-        cli();
-        UENUM = JOYSTICK2_ENDPOINT;
-        timeout = UDFNUML + 50;
-        while (1) {
-                // are we ready to transmit?
-                if (UEINTX & (1<<RWAL)) break;
-                SREG = intr_state;
-                // has the USB gone offline?
-                if (!usb_configuration) return;
-                // have we waited too long?
-                if (UDFNUML == timeout) return;
-                // get ready to try checking again
-                intr_state = SREG;
-                cli();
-                UENUM = JOYSTICK2_ENDPOINT;
-        }
-        UEDATX = joystick2_report_data[0];
-        UEDATX = joystick2_report_data[1];
-        UEDATX = joystick2_report_data[2];
-        UEDATX = joystick2_report_data[3];
-        UEDATX = joystick2_report_data[4];
-        UEDATX = joystick2_report_data[5];
-        UEDATX = joystick2_report_data[6];
-        UEDATX = joystick2_report_data[7];
-        UEDATX = joystick2_report_data[8];
-        UEDATX = joystick2_report_data[9];
-        UEDATX = joystick2_report_data[10];
-        UEDATX = joystick2_report_data[11];
+        UEDATX = dual_joystick_report_data[joynum][0];
+        UEDATX = dual_joystick_report_data[joynum][1];
+        UEDATX = dual_joystick_report_data[joynum][2];
+        UEDATX = dual_joystick_report_data[joynum][3];
+        UEDATX = dual_joystick_report_data[joynum][4];
+        UEDATX = dual_joystick_report_data[joynum][5];
+        UEDATX = dual_joystick_report_data[joynum][6];
+        UEDATX = dual_joystick_report_data[joynum][7];
+        UEDATX = dual_joystick_report_data[joynum][8];
+        UEDATX = dual_joystick_report_data[joynum][9];
+        UEDATX = dual_joystick_report_data[joynum][10];
+        UEDATX = dual_joystick_report_data[joynum][11];
         UEINTX = 0x3A;
         SREG = intr_state;
 }
@@ -953,7 +846,5 @@ void usb_joystick2_class::send_now(void)
 
 usb_serial_class        Serial = usb_serial_class();
 usb_keyboard_class      Keyboard = usb_keyboard_class();
-usb_mouse_class         Mouse = usb_mouse_class();
-usb_joystick_class      Joystick = usb_joystick_class();
-usb_joystick2_class      Joystick2 = usb_joystick_class();
+usb_dual_joystick_class      DualJoystick = usb_dual_joystick_class();
 
