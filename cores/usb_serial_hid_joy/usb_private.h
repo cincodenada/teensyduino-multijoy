@@ -16,7 +16,7 @@ extern "C"{
 // You can change these to give your code its own name.  On Windows,
 // these are only used before an INF file (driver install) is loaded.
 #define STR_MANUFACTURER        L"Teensyduino"
-#define STR_PRODUCT             L"Serial+Keyboard+Mouse+Joystick"
+#define STR_PRODUCT             L"Serial+Keyboard+2xJoystick"
 #define STR_SERIAL		L"Serial"
 
 // Some operating systems, especially Windows, may cache USB device
@@ -93,11 +93,11 @@ extern "C"{
 #define CDC_TX_BUFFER           EP_DOUBLE_BUFFER
 #define CDC_TX_SIZE             64
 
-#define MOUSE_INTERFACE         3
-#define MOUSE_ENDPOINT          5
-#define MOUSE_SIZE              8
-#define MOUSE_BUFFER            EP_DOUBLE_BUFFER
-#define MOUSE_INTERVAL          2
+#define JOYSTICK2_INTERFACE      3
+#define JOYSTICK2_ENDPOINT       5
+#define JOYSTICK2_SIZE           16
+#define JOYSTICK2_BUFFER         EP_DOUBLE_BUFFER
+#define JOYSTICK2_INTERVAL       1
 
 #define JOYSTICK_INTERFACE      4
 #define JOYSTICK_ENDPOINT       6

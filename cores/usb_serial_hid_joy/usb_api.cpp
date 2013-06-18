@@ -906,6 +906,43 @@ void usb_joystick_class::send_now(void)
         SREG = intr_state;
 }
 
+void usb_joystick2_class::send_now(void)
+{
+        uint8_t intr_state, timeout;
+
+        if (!usb_configuration) return;
+        intr_state = SREG;
+        cli();
+        UENUM = JOYSTICK2_ENDPOINT;
+        timeout = UDFNUML + 50;
+        while (1) {
+                // are we ready to transmit?
+                if (UEINTX & (1<<RWAL)) break;
+                SREG = intr_state;
+                // has the USB gone offline?
+                if (!usb_configuration) return;
+                // have we waited too long?
+                if (UDFNUML == timeout) return;
+                // get ready to try checking again
+                intr_state = SREG;
+                cli();
+                UENUM = JOYSTICK2_ENDPOINT;
+        }
+        UEDATX = joystick2_report_data[0];
+        UEDATX = joystick2_report_data[1];
+        UEDATX = joystick2_report_data[2];
+        UEDATX = joystick2_report_data[3];
+        UEDATX = joystick2_report_data[4];
+        UEDATX = joystick2_report_data[5];
+        UEDATX = joystick2_report_data[6];
+        UEDATX = joystick2_report_data[7];
+        UEDATX = joystick2_report_data[8];
+        UEDATX = joystick2_report_data[9];
+        UEDATX = joystick2_report_data[10];
+        UEDATX = joystick2_report_data[11];
+        UEINTX = 0x3A;
+        SREG = intr_state;
+}
 
 
 
@@ -918,4 +955,5 @@ usb_serial_class        Serial = usb_serial_class();
 usb_keyboard_class      Keyboard = usb_keyboard_class();
 usb_mouse_class         Mouse = usb_mouse_class();
 usb_joystick_class      Joystick = usb_joystick_class();
+usb_joystick2_class      Joystick2 = usb_joystick_class();
 
