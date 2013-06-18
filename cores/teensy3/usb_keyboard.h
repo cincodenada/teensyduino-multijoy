@@ -3,7 +3,7 @@
 
 #include "keylayouts.h"
 
-#if defined(USB_HID) || defined(USB_SERIAL_HID)
+#if defined(USB_HID) || defined(USB_SERIAL_HID) || defined(USB_SERIAL_HID_JOY)
 
 #include <inttypes.h>
 
@@ -63,5 +63,5 @@ extern usb_keyboard_class Keyboard;
 
 #endif // __cplusplus
 
-#endif // USB_HID || USB_SERIAL_HID
+#endif // USB_HID || USB_SERIAL_HID || USB_SERIAL_HID_JOY
 #endif // USBkeyboard_h_

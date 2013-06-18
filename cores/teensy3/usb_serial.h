@@ -1,7 +1,7 @@
 #ifndef USBserial_h_
 #define USBserial_h_
 
-#if defined(USB_SERIAL) || defined(USB_SERIAL_HID)
+#if defined(USB_SERIAL) || defined(USB_SERIAL_HID) || defined(USB_SERIAL_HID_JOY)
 
 #include <inttypes.h>
 
@@ -73,5 +73,5 @@ extern usb_serial_class Serial;
 
 #endif // __cplusplus
 
-#endif // USB_SERIAL || USB_SERIAL_HID
+#endif // USB_SERIAL || USB_SERIAL_HID || USB_SERIAL_HID_JOY
 #endif // USBserial_h_
