@@ -892,7 +892,7 @@ ISR(USB_COM_vect)
                                 if (bRequest == HID_GET_REPORT) {
                                         usb_wait_in_ready();
                                         for (i=0; i<12; i++) {
-                                                UEDATX = dual_joystick_report_data[1][i];
+                                                UEDATX = dual_joystick_report_data[0][i];
                                         }
                                         usb_send_in();
                                         return;
@@ -904,7 +904,7 @@ ISR(USB_COM_vect)
                                 if (bRequest == HID_GET_REPORT) {
                                         usb_wait_in_ready();
                                         for (i=0; i<12; i++) {
-                                                UEDATX = dual_joystick_report_data[0][i];
+                                                UEDATX = dual_joystick_report_data[1][i];
                                         }
                                         usb_send_in();
                                         return;

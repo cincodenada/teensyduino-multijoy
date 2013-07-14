@@ -800,11 +800,13 @@ void usb_dual_joystick_class::send_now(void)
         cli();
         switch(joynum) {
             case 0:
-                endpoint = JOYSTICK_ENDPOINT;
-                break;
-            case 1:
                 endpoint = JOYSTICK2_ENDPOINT;
                 break;
+            case 1:
+                endpoint = JOYSTICK_ENDPOINT;
+                break;
+            default:
+                return;
         }
         UENUM = endpoint;
         timeout = UDFNUML + 50;
