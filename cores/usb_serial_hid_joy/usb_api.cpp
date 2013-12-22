@@ -791,24 +791,15 @@ void usb_keyboard_class::releaseAll(void)
 
 
 
-void usb_dual_joystick_class::send_now(void)
+void usb_multi_joystick_class::send_now(void)
 {
-        uint8_t intr_state, timeout, endpoint;
+        uint8_t intr_state, timeout;
 
         if (!usb_configuration) return;
         intr_state = SREG;
         cli();
-        switch(joynum) {
-            case 0:
-                endpoint = JOYSTICK2_ENDPOINT;
-                break;
-            case 1:
-                endpoint = JOYSTICK_ENDPOINT;
-                break;
-            default:
-                return;
-        }
-        UENUM = endpoint;
+        if(joynum >= MULTIJOY_COUNT) { return; }
+        UENUM = MULTIJOY_ENDPOINT + joynum;
         timeout = UDFNUML + 50;
         while (1) {
                 // are we ready to transmit?
@@ -821,20 +812,20 @@ void usb_dual_joystick_class::send_now(void)
                 // get ready to try checking again
                 intr_state = SREG;
                 cli();
-                UENUM = endpoint;
+                UENUM = MULTIJOY_ENDPOINT + joynum;
         }
-        UEDATX = dual_joystick_report_data[joynum][0];
-        UEDATX = dual_joystick_report_data[joynum][1];
-        UEDATX = dual_joystick_report_data[joynum][2];
-        UEDATX = dual_joystick_report_data[joynum][3];
-        UEDATX = dual_joystick_report_data[joynum][4];
-        UEDATX = dual_joystick_report_data[joynum][5];
-        UEDATX = dual_joystick_report_data[joynum][6];
-        UEDATX = dual_joystick_report_data[joynum][7];
-        UEDATX = dual_joystick_report_data[joynum][8];
-        UEDATX = dual_joystick_report_data[joynum][9];
-        UEDATX = dual_joystick_report_data[joynum][10];
-        UEDATX = dual_joystick_report_data[joynum][11];
+        UEDATX = multi_joystick_report_data[joynum][0];
+        UEDATX = multi_joystick_report_data[joynum][1];
+        UEDATX = multi_joystick_report_data[joynum][2];
+        UEDATX = multi_joystick_report_data[joynum][3];
+        UEDATX = multi_joystick_report_data[joynum][4];
+        UEDATX = multi_joystick_report_data[joynum][5];
+        UEDATX = multi_joystick_report_data[joynum][6];
+        UEDATX = multi_joystick_report_data[joynum][7];
+        UEDATX = multi_joystick_report_data[joynum][8];
+        UEDATX = multi_joystick_report_data[joynum][9];
+        UEDATX = multi_joystick_report_data[joynum][10];
+        UEDATX = multi_joystick_report_data[joynum][11];
         UEINTX = 0x3A;
         SREG = intr_state;
 }
@@ -848,5 +839,5 @@ void usb_dual_joystick_class::send_now(void)
 
 usb_serial_class        Serial = usb_serial_class();
 usb_keyboard_class      Keyboard = usb_keyboard_class();
-usb_dual_joystick_class      DualJoystick = usb_dual_joystick_class();
+usb_multi_joystick_class      MultiJoystick = usb_multi_joystick_class();
 

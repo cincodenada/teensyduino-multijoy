@@ -38,8 +38,10 @@ static const uint8_t PROGMEM endpoint_config_table[] = {
 	EP_TYPE_INTERRUPT_IN,  EP_SIZE(CDC_ACM_SIZE) | CDC_ACM_BUFFER,
 	EP_TYPE_BULK_OUT,      EP_SIZE(CDC_RX_SIZE) | CDC_RX_BUFFER,
 	EP_TYPE_BULK_IN,       EP_SIZE(CDC_TX_SIZE) | CDC_TX_BUFFER,
-	EP_TYPE_INTERRUPT_IN,  EP_SIZE(JOYSTICK2_SIZE) | JOYSTICK2_BUFFER,
-	EP_TYPE_INTERRUPT_IN,  EP_SIZE(JOYSTICK_SIZE) | JOYSTICK_BUFFER,
+	EP_TYPE_INTERRUPT_IN,  EP_SIZE(MULTIJOY_SIZE) | MULTIJOY_BUFFER,
+	EP_TYPE_INTERRUPT_IN,  EP_SIZE(MULTIJOY_SIZE) | MULTIJOY_BUFFER,
+	EP_TYPE_INTERRUPT_IN,  EP_SIZE(MULTIJOY_SIZE) | MULTIJOY_BUFFER,
+	EP_TYPE_INTERRUPT_IN,  EP_SIZE(MULTIJOY_SIZE) | MULTIJOY_BUFFER,
 };
 
 
@@ -195,10 +197,9 @@ static const uint8_t PROGMEM joystick_hid_report_desc[] = {
 };
 
 #define KEYBOARD_HID_DESC_OFFSET        ( 9+8 + 9+5+5+4+5+7+9+7+7 + 9 )
-#define MOUSE_HID_DESC_OFFSET           ( 9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9 )
-#define JOYSTICK2_HID_DESC_OFFSET	( 9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9 )
-#define JOYSTICK_HID_DESC_OFFSET	( 9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9 )
-#define CONFIG1_DESC_SIZE		( 9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9+9+7 )
+#define MULTIJOY_HID_DESC_OFFSET        ( 9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9 )
+#define MULTIJOY_HID_DESC_SIZE          ( 9+9+7 )
+#define CONFIG1_DESC_SIZE		        ( 9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + MULTIJOY_HID_DESC_SIZE * 4)
 
 static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	// configuration descriptor, USB spec 9.6.3, page 264-266, Table 9-10
@@ -296,6 +297,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         0x01,                                   // bInterfaceProtocol (0x01 = Keyboard)
         0,                                      // iInterface
         // HID interface descriptor, HID 1.11 spec, section 6.2.1
+        // KEYBOARD_HID_DESC_OFFSET
         9,                                      // bLength
         0x21,                                   // bDescriptorType
         0x11, 0x01,                             // bcdHID
@@ -315,7 +317,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
         9,                                      // bLength
         4,                                      // bDescriptorType
-        JOYSTICK2_INTERFACE,                        // bInterfaceNumber
+        (MULTIJOY_INTERFACE + 0),               // bInterfaceNumber
         0,                                      // bAlternateSetting
         1,                                      // bNumEndpoints
         0x03,                                   // bInterfaceClass (0x03 = HID)
@@ -323,6 +325,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         0x00,                                   // bInterfaceProtocol
         0,                                      // iInterface
         // HID interface descriptor, HID 1.11 spec, section 6.2.1
+        //MULTIJOY_HID_DESC_OFFSET
         9,                                      // bLength
         0x21,                                   // bDescriptorType
         0x11, 0x01,                             // bcdHID
@@ -334,15 +337,15 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
         7,                                      // bLength
         5,                                      // bDescriptorType
-        JOYSTICK2_ENDPOINT | 0x80,                  // bEndpointAddress
+        (MULTIJOY_ENDPOINT + 0) | 0x80,         // bEndpointAddress
         0x03,                                   // bmAttributes (0x03=intr)
-        12, 0,                          // wMaxPacketSize
-        JOYSTICK2_INTERVAL,                         // bInterval
+        12, 0,                                  // wMaxPacketSize
+        MULTIJOY_INTERVAL,                      // bInterval
 
         // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
         9,                                      // bLength
         4,                                      // bDescriptorType
-        JOYSTICK_INTERFACE,                     // bInterfaceNumber
+        (MULTIJOY_INTERFACE + 1),               // bInterfaceNumber
         0,                                      // bAlternateSetting
         1,                                      // bNumEndpoints
         0x03,                                   // bInterfaceClass (0x03 = HID)
@@ -361,10 +364,64 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
         7,                                      // bLength
         5,                                      // bDescriptorType
-        JOYSTICK_ENDPOINT | 0x80,               // bEndpointAddress
+        (MULTIJOY_ENDPOINT + 1) | 0x80,         // bEndpointAddress
         0x03,                                   // bmAttributes (0x03=intr)
         12, 0,                                  // wMaxPacketSize
-        JOYSTICK_INTERVAL                       // bInterval
+        MULTIJOY_INTERVAL,                      // bInterval
+
+        // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+        9,                                      // bLength
+        4,                                      // bDescriptorType
+        (MULTIJOY_INTERFACE + 2),               // bInterfaceNumber
+        0,                                      // bAlternateSetting
+        1,                                      // bNumEndpoints
+        0x03,                                   // bInterfaceClass (0x03 = HID)
+        0x00,                                   // bInterfaceSubClass
+        0x00,                                   // bInterfaceProtocol
+        0,                                      // iInterface
+        // HID interface descriptor, HID 1.11 spec, section 6.2.1
+        9,                                      // bLength
+        0x21,                                   // bDescriptorType
+        0x11, 0x01,                             // bcdHID
+        0,                                      // bCountryCode
+        1,                                      // bNumDescriptors
+        0x22,                                   // bDescriptorType
+        sizeof(joystick_hid_report_desc),       // wDescriptorLength
+        0,
+        // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+        7,                                      // bLength
+        5,                                      // bDescriptorType
+        (MULTIJOY_ENDPOINT + 2) | 0x80,         // bEndpointAddress
+        0x03,                                   // bmAttributes (0x03=intr)
+        12, 0,                                  // wMaxPacketSize
+        MULTIJOY_INTERVAL,                      // bInterval
+
+        // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+        9,                                      // bLength
+        4,                                      // bDescriptorType
+        (MULTIJOY_INTERFACE + 3),               // bInterfaceNumber
+        0,                                      // bAlternateSetting
+        1,                                      // bNumEndpoints
+        0x03,                                   // bInterfaceClass (0x03 = HID)
+        0x00,                                   // bInterfaceSubClass
+        0x00,                                   // bInterfaceProtocol
+        0,                                      // iInterface
+        // HID interface descriptor, HID 1.11 spec, section 6.2.1
+        9,                                      // bLength
+        0x21,                                   // bDescriptorType
+        0x11, 0x01,                             // bcdHID
+        0,                                      // bCountryCode
+        1,                                      // bNumDescriptors
+        0x22,                                   // bDescriptorType
+        sizeof(joystick_hid_report_desc),       // wDescriptorLength
+        0,
+        // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+        7,                                      // bLength
+        5,                                      // bDescriptorType
+        (MULTIJOY_ENDPOINT + 3) | 0x80,         // bEndpointAddress
+        0x03,                                   // bmAttributes (0x03=intr)
+        12, 0,                                  // wMaxPacketSize
+        MULTIJOY_INTERVAL                       // bInterval
 };
 
 // If you're desperate for a little extra code memory, these strings
@@ -413,10 +470,14 @@ static const struct descriptor_list_struct {
 	{0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
         {0x2200, KEYBOARD_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
         {0x2100, KEYBOARD_INTERFACE, config1_descriptor+KEYBOARD_HID_DESC_OFFSET, 9},
-        {0x2200, JOYSTICK2_INTERFACE, joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
-        {0x2100, JOYSTICK2_INTERFACE, config1_descriptor+JOYSTICK2_HID_DESC_OFFSET, 9},
-        {0x2200, JOYSTICK_INTERFACE, joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
-        {0x2100, JOYSTICK_INTERFACE, config1_descriptor+JOYSTICK_HID_DESC_OFFSET, 9},
+        {0x2200, (MULTIJOY_INTERFACE + 0), joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
+        {0x2100, (MULTIJOY_INTERFACE + 0), config1_descriptor+MULTIJOY_HID_DESC_OFFSET + (MULTIJOY_HID_DESC_SIZE * 0), 9},
+        {0x2200, (MULTIJOY_INTERFACE + 1), joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
+        {0x2100, (MULTIJOY_INTERFACE + 1), config1_descriptor+MULTIJOY_HID_DESC_OFFSET + (MULTIJOY_HID_DESC_SIZE * 1), 9},
+        {0x2200, (MULTIJOY_INTERFACE + 2), joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
+        {0x2100, (MULTIJOY_INTERFACE + 2), config1_descriptor+MULTIJOY_HID_DESC_OFFSET + (MULTIJOY_HID_DESC_SIZE * 2), 9},
+        {0x2200, (MULTIJOY_INTERFACE + 3), joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
+        {0x2100, (MULTIJOY_INTERFACE + 3), config1_descriptor+MULTIJOY_HID_DESC_OFFSET + (MULTIJOY_HID_DESC_SIZE * 3), 9},
 	{0x0300, 0x0000, (const uint8_t *)&string0, 4},
 	{0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER)},
 	{0x0302, 0x0409, (const uint8_t *)&string2, sizeof(STR_PRODUCT)},
@@ -479,7 +540,7 @@ uint8_t mouse_buttons USBSTATE;
 static uint8_t mouse_protocol USBSTATE;
 
 // joystick data
-uint8_t dual_joystick_report_data[2][12] USBSTATE;
+uint8_t multi_joystick_report_data[MULTIJOY_COUNT][12] USBSTATE;
 
 /**************************************************************************
  *
@@ -491,7 +552,7 @@ uint8_t dual_joystick_report_data[2][12] USBSTATE;
 // initialize USB serial
 void usb_init(void)
 {
-	uint8_t u;
+	uint8_t u, i;
 
 	u = USBCON;
 	if ((u & (1<<USBE)) && !(u & (1<<FRZCLK))) return;
@@ -518,30 +579,20 @@ void usb_init(void)
         keyboard_leds = 0;
         mouse_buttons = 0;
         mouse_protocol = 1;
-        dual_joystick_report_data[0][0] = 0;
-        dual_joystick_report_data[0][1] = 0;
-        dual_joystick_report_data[0][2] = 0;
-        dual_joystick_report_data[0][3] = 0;
-        dual_joystick_report_data[0][4] =  0x0F;
-        dual_joystick_report_data[0][5] =  0x20;
-        dual_joystick_report_data[0][6] =  0x80;
-        dual_joystick_report_data[0][7] =  0x00;
-        dual_joystick_report_data[0][8] =  0x02;
-        dual_joystick_report_data[0][9] =  0x08;
-        dual_joystick_report_data[0][10] = 0x20;
-        dual_joystick_report_data[0][11] = 0x80;
-        dual_joystick_report_data[1][0] = 0;
-        dual_joystick_report_data[1][1] = 0;
-        dual_joystick_report_data[1][2] = 0;
-        dual_joystick_report_data[1][3] = 0;
-        dual_joystick_report_data[1][4] =  0x0F;
-        dual_joystick_report_data[1][5] =  0x20;
-        dual_joystick_report_data[1][6] =  0x80;
-        dual_joystick_report_data[1][7] =  0x00;
-        dual_joystick_report_data[1][8] =  0x02;
-        dual_joystick_report_data[1][9] =  0x08;
-        dual_joystick_report_data[1][10] = 0x20;
-        dual_joystick_report_data[1][11] = 0x80;
+        for(i=0; i<MULTIJOY_COUNT;i++) {
+        multi_joystick_report_data[i][0] = 0;
+        multi_joystick_report_data[i][1] = 0;
+        multi_joystick_report_data[i][2] = 0;
+        multi_joystick_report_data[i][3] = 0;
+        multi_joystick_report_data[i][4] =  0x0F;
+        multi_joystick_report_data[i][5] =  0x20;
+        multi_joystick_report_data[i][6] =  0x80;
+        multi_joystick_report_data[i][7] =  0x00;
+        multi_joystick_report_data[i][8] =  0x02;
+        multi_joystick_report_data[i][9] =  0x08;
+        multi_joystick_report_data[i][10] = 0x20;
+        multi_joystick_report_data[i][11] = 0x80;
+        }
 	UDINT = 0;
         UDIEN = (1<<EORSTE)|(1<<SOFE)|(1<<SUSPE);
 }
@@ -887,24 +938,12 @@ ISR(USB_COM_vect)
                                 }
                         }
                 }
-                if (wIndex == JOYSTICK2_INTERFACE) {
+                if (wIndex >= MULTIJOY_INTERFACE && wIndex < (MULTIJOY_INTERFACE + MULTIJOY_COUNT)) {
                         if (bmRequestType == 0xA1) {
                                 if (bRequest == HID_GET_REPORT) {
                                         usb_wait_in_ready();
                                         for (i=0; i<12; i++) {
-                                                UEDATX = dual_joystick_report_data[0][i];
-                                        }
-                                        usb_send_in();
-                                        return;
-                                }
-                        }
-                }
-                if (wIndex == JOYSTICK_INTERFACE) {
-                        if (bmRequestType == 0xA1) {
-                                if (bRequest == HID_GET_REPORT) {
-                                        usb_wait_in_ready();
-                                        for (i=0; i<12; i++) {
-                                                UEDATX = dual_joystick_report_data[1][i];
+                                                UEDATX = multi_joystick_report_data[wIndex-MULTIJOY_INTERFACE][i];
                                         }
                                         usb_send_in();
                                         return;

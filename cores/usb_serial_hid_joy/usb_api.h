@@ -82,78 +82,78 @@ class usb_keyboard_class : public Print
 extern usb_keyboard_class Keyboard;
 
 
-extern uint8_t dual_joystick_report_data[2][12];
+extern uint8_t multi_joystick_report_data[][12];
 
-class usb_dual_joystick_class
+class usb_multi_joystick_class
 {
         public:
-        usb_dual_joystick_class() { manual_mode = 0; joynum = 0; }
+        usb_multi_joystick_class() { manual_mode = 0; joynum = 0; }
         inline void button(uint8_t button, bool val) {
                 button--;
                 uint8_t mask = (1 << (button & 7));
                 if (val) {
-                        if (button < 8) dual_joystick_report_data[joynum][0] |= mask;
-                        else if (button < 16) dual_joystick_report_data[joynum][1] |= mask;
-                        else if (button < 24) dual_joystick_report_data[joynum][2] |= mask;
-                        else if (button < 32) dual_joystick_report_data[joynum][3] |= mask;
+                        if (button < 8) multi_joystick_report_data[joynum][0] |= mask;
+                        else if (button < 16) multi_joystick_report_data[joynum][1] |= mask;
+                        else if (button < 24) multi_joystick_report_data[joynum][2] |= mask;
+                        else if (button < 32) multi_joystick_report_data[joynum][3] |= mask;
                 } else {
                         mask = ~mask;
-                        if (button < 8) dual_joystick_report_data[joynum][0] &= mask;
-                        else if (button < 16) dual_joystick_report_data[joynum][1] &= mask;
-                        else if (button < 24) dual_joystick_report_data[joynum][2] &= mask;
-                        else if (button < 32) dual_joystick_report_data[joynum][3] &= mask;
+                        if (button < 8) multi_joystick_report_data[joynum][0] &= mask;
+                        else if (button < 16) multi_joystick_report_data[joynum][1] &= mask;
+                        else if (button < 24) multi_joystick_report_data[joynum][2] &= mask;
+                        else if (button < 32) multi_joystick_report_data[joynum][3] &= mask;
                 }
                 if (!manual_mode) send_now();
         }
         inline void X(uint16_t val) {
                 if (val > 1023) val = 1023;
-                dual_joystick_report_data[joynum][4] = (dual_joystick_report_data[joynum][4] & 0x0F) | (val << 4);
-                dual_joystick_report_data[joynum][5] = (dual_joystick_report_data[joynum][5] & 0xC0) | (val >> 4);
+                multi_joystick_report_data[joynum][4] = (multi_joystick_report_data[joynum][4] & 0x0F) | (val << 4);
+                multi_joystick_report_data[joynum][5] = (multi_joystick_report_data[joynum][5] & 0xC0) | (val >> 4);
                 if (!manual_mode) send_now();
         }
         inline void Y(uint16_t val) {
                 if (val > 1023) val = 1023;
-                dual_joystick_report_data[joynum][5] = (dual_joystick_report_data[joynum][5] & 0x3F) | (val << 6);
-                dual_joystick_report_data[joynum][6] = (val >> 2);
+                multi_joystick_report_data[joynum][5] = (multi_joystick_report_data[joynum][5] & 0x3F) | (val << 6);
+                multi_joystick_report_data[joynum][6] = (val >> 2);
                 if (!manual_mode) send_now();
         }
         inline void position(uint16_t x, uint16_t y) {
                 if (x > 1023) x = 1023;
                 if (y > 1023) y = 1023;
-                dual_joystick_report_data[joynum][4] = (dual_joystick_report_data[joynum][4] & 0x0F) | (x << 4);
-                dual_joystick_report_data[joynum][5] = (x >> 4) | (y << 6);
-                dual_joystick_report_data[joynum][6] = (y >> 2);
+                multi_joystick_report_data[joynum][4] = (multi_joystick_report_data[joynum][4] & 0x0F) | (x << 4);
+                multi_joystick_report_data[joynum][5] = (x >> 4) | (y << 6);
+                multi_joystick_report_data[joynum][6] = (y >> 2);
                 if (!manual_mode) send_now();
         }
         inline void Z(uint16_t val) {
                 if (val > 1023) val = 1023;
-                dual_joystick_report_data[joynum][7] = val;
-                dual_joystick_report_data[joynum][8] = (dual_joystick_report_data[joynum][8] & 0xFC) | (val >> 8);
+                multi_joystick_report_data[joynum][7] = val;
+                multi_joystick_report_data[joynum][8] = (multi_joystick_report_data[joynum][8] & 0xFC) | (val >> 8);
                 if (!manual_mode) send_now();
         }
         inline void Zrotate(uint16_t val) {
                 if (val > 1023) val = 1023;
-                dual_joystick_report_data[joynum][8] = (dual_joystick_report_data[joynum][8] & 0x03) | (val << 2);
-                dual_joystick_report_data[joynum][9] = (dual_joystick_report_data[joynum][9] & 0xF0) | (val >> 6);
+                multi_joystick_report_data[joynum][8] = (multi_joystick_report_data[joynum][8] & 0x03) | (val << 2);
+                multi_joystick_report_data[joynum][9] = (multi_joystick_report_data[joynum][9] & 0xF0) | (val >> 6);
                 if (!manual_mode) send_now();
         }
         inline void sliderLeft(uint16_t val) {
                 if (val > 1023) val = 1023;
-                dual_joystick_report_data[joynum][9] = (dual_joystick_report_data[joynum][9] & 0x0F) | (val << 4);
-                dual_joystick_report_data[joynum][10] = (dual_joystick_report_data[joynum][10] & 0xC0) | (val >> 4);
+                multi_joystick_report_data[joynum][9] = (multi_joystick_report_data[joynum][9] & 0x0F) | (val << 4);
+                multi_joystick_report_data[joynum][10] = (multi_joystick_report_data[joynum][10] & 0xC0) | (val >> 4);
                 if (!manual_mode) send_now();
         }
         inline void sliderRight(uint16_t val) {
                 if (val > 1023) val = 1023;
-                dual_joystick_report_data[joynum][10] = (dual_joystick_report_data[joynum][10] & 0x3F) | (val << 6);
-                dual_joystick_report_data[joynum][11] = (val >> 2);
+                multi_joystick_report_data[joynum][10] = (multi_joystick_report_data[joynum][10] & 0x3F) | (val << 6);
+                multi_joystick_report_data[joynum][11] = (val >> 2);
                 if (!manual_mode) send_now();
         }
         inline void slider(uint16_t val) {
                 if (val > 1023) val = 1023;
-                dual_joystick_report_data[joynum][9] = (dual_joystick_report_data[joynum][9] & 0x0F) | (val << 4);
-                dual_joystick_report_data[joynum][10] = (val >> 4) | (val << 6);
-                dual_joystick_report_data[joynum][11] = (val >> 2);
+                multi_joystick_report_data[joynum][9] = (multi_joystick_report_data[joynum][9] & 0x0F) | (val << 4);
+                multi_joystick_report_data[joynum][10] = (val >> 4) | (val << 6);
+                multi_joystick_report_data[joynum][11] = (val >> 2);
                 if (!manual_mode) send_now();
         }
         inline void hat(int16_t dir) {
@@ -167,7 +167,7 @@ class usb_dual_joystick_class
                 else if (dir < 245) val = 5;
                 else if (dir < 293) val = 6;
                 else if (dir < 338) val = 7;
-                dual_joystick_report_data[joynum][4] = (dual_joystick_report_data[joynum][4] & 0xF0) | val;
+                multi_joystick_report_data[joynum][4] = (multi_joystick_report_data[joynum][4] & 0xF0) | val;
                 if (!manual_mode) send_now();
         }
         inline void useManualSend(bool mode) {
@@ -183,7 +183,7 @@ class usb_dual_joystick_class
         uint8_t joynum;
 };
 
-extern usb_dual_joystick_class DualJoystick;
+extern usb_multi_joystick_class MultiJoystick;
 
 
 #endif
