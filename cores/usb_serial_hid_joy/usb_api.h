@@ -170,6 +170,25 @@ class usb_multi_joystick_class
                 multi_joystick_report_data[joynum][4] = (multi_joystick_report_data[joynum][4] & 0xF0) | val;
                 if (!manual_mode) send_now();
         }
+        inline void axis(uint8_t axisnum, uint16_t val) {
+                uint8_t bytenum, bitoffset, lowshift;
+                uint8_t lowmask, highmask;
+                if (val > 1023) val = 1023;
+                //TODO: Precalculate these somewhere?
+                //Axis values are 10 bits each, starting at the upper nibble of byte 4 (byte 4, bit 4)
+                //(all above are zero-indexed)
+                bitoffset = 4*8 + 4 + (axisnum * 10);
+                bytenum = bitoffset >> 3;
+
+                lowshift = bitoffset % 8;
+
+                lowmask = ~(0xFF << lowshift);
+                highmask = (~lowmask) << 2;
+
+                multi_joystick_report_data[joynum][bytenum] = (multi_joystick_report_data[joynum][bytenum] & lowmask) | (val << lowshift);
+                multi_joystick_report_data[joynum][bytenum+1] = (multi_joystick_report_data[joynum][bytenum+1] & highmask) | (val >> (8 - lowshift));
+                if (!manual_mode) send_now();
+        }
         inline void useManualSend(bool mode) {
                 manual_mode = mode;
         }
