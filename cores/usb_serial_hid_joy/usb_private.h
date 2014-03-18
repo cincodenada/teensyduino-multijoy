@@ -126,7 +126,7 @@ extern uint8_t keyboard_report_data[];
 extern uint8_t keyboard_idle_count;
 extern volatile uint8_t keyboard_leds;
 extern uint8_t mouse_buttons;
-extern uint8_t joystick_report_data[12];
+extern uint8_t multi_joystick_report_data[MULTIJOY_COUNT][12];
 
 
 #ifdef __cplusplus

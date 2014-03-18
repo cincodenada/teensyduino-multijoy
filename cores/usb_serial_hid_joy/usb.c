@@ -121,36 +121,6 @@ static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
         0xc0                    // End Collection
 };
 
-// Mouse Protocol 1, HID 1.11 spec, Appendix B, page 59-60, with wheel extension
-static const uint8_t PROGMEM mouse_hid_report_desc[] = {
-        0x05, 0x01,                     // Usage Page (Generic Desktop)
-        0x09, 0x02,                     // Usage (Mouse)
-        0xA1, 0x01,                     // Collection (Application)
-        0x05, 0x09,                     //   Usage Page (Button)
-        0x19, 0x01,                     //   Usage Minimum (Button #1)
-        0x29, 0x03,                     //   Usage Maximum (Button #3)
-        0x15, 0x00,                     //   Logical Minimum (0)
-        0x25, 0x01,                     //   Logical Maximum (1)
-        0x95, 0x03,                     //   Report Count (3)
-        0x75, 0x01,                     //   Report Size (1)
-        0x81, 0x02,                     //   Input (Data, Variable, Absolute)
-        0x95, 0x01,                     //   Report Count (1)
-        0x75, 0x05,                     //   Report Size (5)
-        0x81, 0x03,                     //   Input (Constant)
-        0x05, 0x01,                     //   Usage Page (Generic Desktop)
-        0x09, 0x30,                     //   Usage (X)
-        0x09, 0x31,                     //   Usage (Y)
-        0x15, 0x81,                     //   Logical Minimum (-127)
-        0x25, 0x7F,                     //   Logical Maximum (127)
-        0x75, 0x08,                     //   Report Size (8),
-        0x95, 0x02,                     //   Report Count (2),
-        0x81, 0x06,                     //   Input (Data, Variable, Relative)
-        0x09, 0x38,                     //   Usage (Wheel)
-        0x95, 0x01,                     //   Report Count (1),
-        0x81, 0x06,                     //   Input (Data, Variable, Relative)
-        0xC0                            // End Collection
-};
-
 static const uint8_t PROGMEM joystick_hid_report_desc[] = {
         0x05, 0x01,                     // Usage Page (Generic Desktop)
         0x09, 0x04,                     // Usage (Joystick)
@@ -207,7 +177,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	2,					// bDescriptorType;
 	LSB(CONFIG1_DESC_SIZE),			// wTotalLength
 	MSB(CONFIG1_DESC_SIZE),
-	5,					// bNumInterfaces
+	7,					// bNumInterfaces
 	1,					// bConfigurationValue
 	0,					// iConfiguration
 	0xC0,					// bmAttributes
@@ -531,14 +501,6 @@ uint8_t keyboard_idle_count USBSTATE;
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t keyboard_leds USBSTATE;
 
-// which buttons are currently pressed
-uint8_t mouse_buttons USBSTATE;
-
-// protocol setting from the host.  We use exactly the same report
-// either way, so this variable only stores the setting since we
-// are required to be able to report which setting is in use.
-static uint8_t mouse_protocol USBSTATE;
-
 // joystick data
 uint8_t multi_joystick_report_data[MULTIJOY_COUNT][12] USBSTATE;
 
@@ -577,8 +539,6 @@ void usb_init(void)
         keyboard_idle_config = 125;
         keyboard_idle_count = 0;
         keyboard_leds = 0;
-        mouse_buttons = 0;
-        mouse_protocol = 1;
         for(i=0; i<MULTIJOY_COUNT;i++) {
         multi_joystick_report_data[i][0] = 0;
         multi_joystick_report_data[i][1] = 0;
@@ -803,7 +763,7 @@ ISR(USB_COM_vect)
 			transmit_flush_timer = 0;
 			usb_send_in();
 			cfg = endpoint_config_table;
-			for (i=1; i<7; i++) {
+			for (i=1; i <= MAX_ENDPOINT; i++) {
 				UENUM = i;
 				//pgm_read_byte_postinc(en, cfg);
 				//UECONX = en;
