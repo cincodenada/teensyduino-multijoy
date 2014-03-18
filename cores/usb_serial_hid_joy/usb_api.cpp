@@ -789,6 +789,10 @@ void usb_keyboard_class::releaseAll(void)
 
 
 
+uint8_t usb_multi_joystick_class::num_joys(void)
+{
+    return MULTIJOY_COUNT;
+}
 
 
 void usb_multi_joystick_class::send_now(void)

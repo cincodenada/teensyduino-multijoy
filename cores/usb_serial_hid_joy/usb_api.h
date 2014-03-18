@@ -195,6 +195,7 @@ class usb_multi_joystick_class
         inline void setJoyNum(uint8_t num) {
                 joynum = num;
         }
+        uint8_t num_joys(void);
         void send_now(void);
         private:
         //static uint8_t manual_mode;

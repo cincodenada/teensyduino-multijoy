@@ -73,7 +73,9 @@ extern "C"{
  *
  **************************************************************************/
 
-
+//Uncomment this line to enable the USB serial port
+//This will disable two joysticks, since we only have 6 endpoints
+//#define ENABLE_SERIAL
 
 #define ENDPOINT0_SIZE          64
 
@@ -83,25 +85,31 @@ extern "C"{
 #define KEYBOARD_BUFFER         EP_DOUBLE_BUFFER
 #define KEYBOARD_INTERVAL       1
 
-#define CDC_ACM_ENDPOINT        2
+#ifdef ENABLE_SERIAL
+#define CDC_SHIFT 0
+#define MULTIJOY_SHIFT 3
+#define MULTIJOY_COUNT 2
+#else
+#define CDC_SHIFT 3
+#define MULTIJOY_SHIFT 0
+#define MULTIJOY_COUNT 4
+#endif
+
+#define CDC_ACM_ENDPOINT        2 + CDC_SHIFT
 #define CDC_ACM_SIZE            16
 #define CDC_ACM_BUFFER          EP_SINGLE_BUFFER
-#define CDC_RX_ENDPOINT         3
+#define CDC_RX_ENDPOINT         3 + CDC_SHIFT
 #define CDC_RX_SIZE             64
 #define CDC_RX_BUFFER           EP_DOUBLE_BUFFER
-#define CDC_TX_ENDPOINT         4
+#define CDC_TX_ENDPOINT         4 + CDC_SHIFT
 #define CDC_TX_BUFFER           EP_DOUBLE_BUFFER
 #define CDC_TX_SIZE             64
 
 #define MULTIJOY_INTERFACE      3
-#define MULTIJOY_ENDPOINT       5
+#define MULTIJOY_ENDPOINT       2 + MULTIJOY_SHIFT
 #define MULTIJOY_SIZE           16
 #define MULTIJOY_BUFFER         EP_DOUBLE_BUFFER
 #define MULTIJOY_INTERVAL       1
-#define MULTIJOY_COUNT          4
-
-//Caution: There will be 4 joysticks defined, so the next
-//interface and endpoint will be 7 and 9, respectively
 
 // setup
 void usb_init(void);			// initialize everything

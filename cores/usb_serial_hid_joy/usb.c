@@ -35,9 +35,11 @@
 
 static const uint8_t PROGMEM endpoint_config_table[] = {
 	EP_TYPE_INTERRUPT_IN,  EP_SIZE(KEYBOARD_SIZE) | KEYBOARD_BUFFER,
+#ifdef ENABLE_SERIAL
 	EP_TYPE_INTERRUPT_IN,  EP_SIZE(CDC_ACM_SIZE) | CDC_ACM_BUFFER,
 	EP_TYPE_BULK_OUT,      EP_SIZE(CDC_RX_SIZE) | CDC_RX_BUFFER,
 	EP_TYPE_BULK_IN,       EP_SIZE(CDC_TX_SIZE) | CDC_TX_BUFFER,
+#endif
 	EP_TYPE_INTERRUPT_IN,  EP_SIZE(MULTIJOY_SIZE) | MULTIJOY_BUFFER,
 	EP_TYPE_INTERRUPT_IN,  EP_SIZE(MULTIJOY_SIZE) | MULTIJOY_BUFFER,
 	EP_TYPE_INTERRUPT_IN,  EP_SIZE(MULTIJOY_SIZE) | MULTIJOY_BUFFER,
@@ -169,7 +171,7 @@ static const uint8_t PROGMEM joystick_hid_report_desc[] = {
 #define KEYBOARD_HID_DESC_OFFSET        ( 9+8 + 9+5+5+4+5+7+9+7+7 + 9 )
 #define MULTIJOY_HID_DESC_OFFSET        ( 9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9 )
 #define MULTIJOY_HID_DESC_SIZE          ( 9+9+7 )
-#define CONFIG1_DESC_SIZE		        ( 9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + MULTIJOY_HID_DESC_SIZE * 4)
+#define CONFIG1_DESC_SIZE		        ( 9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + MULTIJOY_HID_DESC_SIZE * MULTIJOY_COUNT)
 
 static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	// configuration descriptor, USB spec 9.6.3, page 264-266, Table 9-10
@@ -337,6 +339,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         (MULTIJOY_ENDPOINT + 1) | 0x80,         // bEndpointAddress
         0x03,                                   // bmAttributes (0x03=intr)
         12, 0,                                  // wMaxPacketSize
+#ifndef ENABLE_SERIAL
         MULTIJOY_INTERVAL,                      // bInterval
 
         // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
@@ -391,6 +394,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         (MULTIJOY_ENDPOINT + 3) | 0x80,         // bEndpointAddress
         0x03,                                   // bmAttributes (0x03=intr)
         12, 0,                                  // wMaxPacketSize
+#endif
         MULTIJOY_INTERVAL                       // bInterval
 };
 
@@ -444,10 +448,12 @@ static const struct descriptor_list_struct {
         {0x2100, (MULTIJOY_INTERFACE + 0), config1_descriptor+MULTIJOY_HID_DESC_OFFSET + (MULTIJOY_HID_DESC_SIZE * 0), 9},
         {0x2200, (MULTIJOY_INTERFACE + 1), joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
         {0x2100, (MULTIJOY_INTERFACE + 1), config1_descriptor+MULTIJOY_HID_DESC_OFFSET + (MULTIJOY_HID_DESC_SIZE * 1), 9},
+#ifndef ENABLE_SERIAL
         {0x2200, (MULTIJOY_INTERFACE + 2), joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
         {0x2100, (MULTIJOY_INTERFACE + 2), config1_descriptor+MULTIJOY_HID_DESC_OFFSET + (MULTIJOY_HID_DESC_SIZE * 2), 9},
         {0x2200, (MULTIJOY_INTERFACE + 3), joystick_hid_report_desc, sizeof(joystick_hid_report_desc)},
         {0x2100, (MULTIJOY_INTERFACE + 3), config1_descriptor+MULTIJOY_HID_DESC_OFFSET + (MULTIJOY_HID_DESC_SIZE * 3), 9},
+#endif
 	{0x0300, 0x0000, (const uint8_t *)&string0, 4},
 	{0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER)},
 	{0x0302, 0x0409, (const uint8_t *)&string2, sizeof(STR_PRODUCT)},
