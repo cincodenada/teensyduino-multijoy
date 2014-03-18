@@ -174,6 +174,8 @@ class usb_multi_joystick_class
                 uint8_t bytenum, bitoffset, lowshift;
                 uint8_t lowmask, highmask;
                 if (val > 1023) val = 1023;
+                axisnum--;
+
                 //TODO: Precalculate these somewhere?
                 //Axis values are 10 bits each, starting at the upper nibble of byte 4 (byte 4, bit 4)
                 //(all above are zero-indexed)
